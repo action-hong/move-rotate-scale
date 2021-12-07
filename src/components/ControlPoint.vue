@@ -2,7 +2,6 @@
   <div
     ref="el"
     class="control-point-wrapper"
-    :class="{ active }"
     :style="myStyle"
     @mousedown="handleMove"
   >
@@ -11,6 +10,7 @@
         v-for="(point) in points"
         :key="point"
         :style="getPointStyle(point)"
+        @mousedown.stop="e => handleScale(e, point)"
       ></div>
     <slot></slot>
   </div>
@@ -18,6 +18,7 @@
 
 <script setup>
 import { reactive, computed, ref } from 'vue'
+import { getFixPoint } from '../utils'
 
 const el = ref()
 
@@ -64,7 +65,7 @@ const state = reactive({
   height: 100,
   x: 100,
   y: 100,
-  rotate: 30
+  rotate: 0
 })
 
 const myStyle = computed(() => {
@@ -113,6 +114,32 @@ const handleCircle = (e) => {
 
     const after = Math.atan2(currentY, currentX) * 180 / Math.PI
     state.rotate = startRotate + after - before
+  }
+
+  const up = () => {
+    document.removeEventListener('mousemove', move)
+    document.removeEventListener('mouseup', up)
+  }
+
+  document.addEventListener('mousemove', move)
+  document.addEventListener('mouseup', up)
+}
+
+const handleScale = (e, dir) => {
+  const rect = el.value.parentElement.getBoundingClientRect()
+  const fixPoint = getFixPoint(state, dir)
+
+  const move = (e) => {
+    const current = {
+      x: e.pageX - rect.left,
+      y: e.pageY - rect.top
+    }
+
+    state.width = Math.abs(fixPoint.x - current.x)
+    state.x = Math.min(fixPoint.x, current.x)
+
+    state.height = Math.abs(fixPoint.y - current.y)
+    state.y = Math.min(fixPoint.y, current.y)
   }
 
   const up = () => {
