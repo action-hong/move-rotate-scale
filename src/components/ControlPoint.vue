@@ -17,10 +17,17 @@
 </template>
 
 <script setup>
-import { reactive, computed, ref } from 'vue'
-import { getFixPoint } from '../utils'
+import { reactive, computed, ref, defineProps } from 'vue'
+import { calcPointInLine, getFixPoint, rotate } from '../utils'
 
 const el = ref()
+
+const props = defineProps({
+  useProportion: {
+    type: Boolean,
+    default: false
+  }
+})
 
 const points = [
   'n',
@@ -127,19 +134,42 @@ const handleCircle = (e) => {
 
 const handleScale = (e, dir) => {
   const rect = el.value.parentElement.getBoundingClientRect()
-  const fixPoint = getFixPoint(state, dir)
-
+  const centerPoint = {
+    x: state.x + state.width / 2,
+    y: state.y + state.height / 2
+  }
+  const fixPoint = rotate(getFixPoint(state, dir), centerPoint, -state.rotate)
   const move = (e) => {
-    const current = {
+    let current = {
       x: e.pageX - rect.left,
       y: e.pageY - rect.top
     }
 
-    state.width = Math.abs(fixPoint.x - current.x)
-    state.x = Math.min(fixPoint.x, current.x)
+    if (dir.length === 1 || props.useProportion) {
+      current = calcPointInLine(current, fixPoint, centerPoint)
+    }
 
-    state.height = Math.abs(fixPoint.y - current.y)
-    state.y = Math.min(fixPoint.y, current.y)
+    const newCenterPoint = {
+      x: (current.x + fixPoint.x) / 2,
+      y: (current.y + fixPoint.y) / 2
+    }
+
+    const beforeRotateFixPoint = rotate(fixPoint, newCenterPoint, state.rotate)
+    const beforeRotateCurrentPoint = rotate(current, newCenterPoint, state.rotate)
+
+    if (dir !== 's' && dir !== 'n') {
+      state.width = Math.abs(beforeRotateFixPoint.x - beforeRotateCurrentPoint.x)
+      state.x = Math.min(beforeRotateFixPoint.x, beforeRotateCurrentPoint.x)
+    } else {
+      state.x = beforeRotateFixPoint.x - state.width / 2
+    }
+
+    if (dir !== 'w' && dir !== 'e') {
+      state.height = Math.abs(beforeRotateFixPoint.y - beforeRotateCurrentPoint.y)
+      state.y = Math.min(beforeRotateFixPoint.y, beforeRotateCurrentPoint.y)
+    } else {
+      state.y = beforeRotateFixPoint.y - state.height / 2
+    }
   }
 
   const up = () => {

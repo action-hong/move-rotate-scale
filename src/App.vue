@@ -1,14 +1,20 @@
 <template>
   <div id="app">
-    <control-point>
+    <label for="useProportion">按比例缩放</label>
+    <input type="checkbox" id="useProportion" v-model="useProportion">
+    <control-point
+      :use-proportion="useProportion">
       <rectangle />
     </control-point>
   </div>
 </template>
 
 <script setup>
+import { ref } from 'vue'
 import ControlPoint from './components/ControlPoint.vue'
 import Rectangle from './components/Rectangle.vue'
+
+const useProportion = ref(false)
 </script>
 
 <style>
