@@ -18,7 +18,7 @@
 
 <script setup>
 import { reactive, computed, ref, defineProps } from 'vue'
-import { calcPointInLine, getFixPoint, rotate } from '../utils'
+import { calcPointInLine, getCursor, getFixPoint, rotate } from '../utils'
 
 const el = ref()
 
@@ -39,6 +39,14 @@ const points = [
   'w',
   'nw'
 ]
+
+const state = reactive({
+  width: 100,
+  height: 100,
+  x: 100,
+  y: 100,
+  rotate: 0
+})
 
 const getPointStyle = (name) => {
   const style = {}
@@ -64,16 +72,10 @@ const getPointStyle = (name) => {
     style.transform = 'translateY(-50%)'
   }
 
+  style.cursor = getCursor(name, state.rotate)
+
   return style
 }
-
-const state = reactive({
-  width: 100,
-  height: 100,
-  x: 100,
-  y: 100,
-  rotate: 0
-})
 
 const myStyle = computed(() => {
   return {

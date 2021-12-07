@@ -92,3 +92,21 @@ export function calcPointInLine (point, A, B) {
     y
   }
 }
+
+const dirs = [
+  'n',
+  'ne',
+  'e',
+  'se',
+  's',
+  'sw',
+  'w',
+  'nw'
+]
+
+export function getCursor (dir, angle) {
+  const index = dirs.indexOf(dir)
+  angle += index * 45
+  const i = Math.round(angle / 45) % 8
+  return dirs[i] + '-resize'
+}
